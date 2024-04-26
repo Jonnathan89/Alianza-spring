@@ -128,10 +128,10 @@ public class ClientServiceImpTests {
 
 	@Test
 	@DisplayName("Test create clients Failed Duplicate")
-	void testCreateClientFailerD() throws DuplicateKeyException {		
+	void testCreateClientFailerD() throws DuplicateKeyException {
 		when(repository.findById(anyString())).thenReturn(Optional.of(new Client()));
 		assertThrows(ResponseStatusException.class, () -> this.service.createClient(cli));
-		
+
 	}
 
 	@Test
@@ -146,9 +146,9 @@ public class ClientServiceImpTests {
 
 	@Test
 	@DisplayName("Test get id clients Exception")
-	void testGetIdClientError() throws Exception {	
+	void testGetIdClientError() throws Exception {
 
-		when(repository.findById(anyString())).thenThrow(new RuntimeException());		
+		when(repository.findById(anyString())).thenThrow(new RuntimeException());
 		assertThrows(ResponseStatusException.class, () -> {
 			service.getIdClient("anyKey");
 		});
@@ -159,9 +159,32 @@ public class ClientServiceImpTests {
 	void testGetIdClientNull() throws Exception {
 		when(this.repository.findById(anyString())).thenReturn(Optional.empty());
 		assertThrows(ResponseStatusException.class, () -> {
-	        service.getIdClient("anyKey");
-	    });
+			service.getIdClient("anyKey");
+		});
 
+	}
+
+	@Test
+	@DisplayName("Test getIdClient - DTO not null")
+	void testGetIdClient_DtoNotNull() {
+
+		ClientDto dto = new ClientDto();
+		dto.setSharedKey("sharedKey");
+
+		Client dtoC = new Client();
+		dto.setSharedKey("sharedKey");
+
+		when(this.repository.findById("sharedKey")).thenReturn(Optional.of(new Client()));
+
+		when(this.mapper.map(dtoC,(ClientDto.class))).thenReturn(dto);
+
+		ArrayList<ClientDto> result = this.service.getIdClient("sharedKey");
+
+		assertNotNull(result);
+
+		assertEquals(1, result.size());
+
+		assertEquals(dto, result.get(0));
 	}
 
 }
