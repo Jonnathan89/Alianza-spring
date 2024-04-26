@@ -4,17 +4,14 @@
 package com.micro.alianza.client.controller;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -39,6 +36,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import com.google.gson.Gson;
 import com.micro.alianza.client.dto.ClientDto;
 import com.micro.alianza.client.service.ClientServiceImp;
 import com.micro.alianza.client.util.Constants;
@@ -128,12 +126,13 @@ public class ClientControllerTests {
 	@Test
 	@DisplayName("Test get id Client Success")
 	void testGetClient() throws Exception {
-		this.url = new URL(HOST + port + SERVICE + "shared").toString();
+		this.url = new URL(HOST + port + SERVICE + "client-id").toString();
 
-		UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url).queryParam( "jalvarez");
+		UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url).queryParam("shared","jalvarez");
 
 	
 		doReturn(this.lst).when(this.service).getIdClient("jalvarez");
+		String urlFD = builder.toUriString();
 
 		ResponseEntity<List<ClientDto>> response = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, null,
 				new ParameterizedTypeReference<List<ClientDto>>(){});
@@ -165,18 +164,31 @@ public class ClientControllerTests {
 
 	@Test
 	@DisplayName("Test create client  Success")
-	void testCreateClient() throws Exception {
-		this.url = new URL(HOST + port + SERVICE + "create_course").toString();
+	void testCreateClient() throws Exception {		
+	   
+	    ClientDto clientDto = new ClientDto();
+        clientDto.setSharedKey("ggggggggggggg");
+        clientDto.setBussinesId("ggggggggggggggggggggg");
+        clientDto.setEmail("example@example.com");
+        clientDto.setPhone(1234567890);
+        clientDto.setDateAdded(new Date()); 
+		
+		
+		this.url = new URL(HOST + port + SERVICE + "create-client").toString();
 
 		UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url);
 		doNothing().when(service).createClient(any(ClientDto.class));
-		;
+		
+		
+		  ResponseEntity<?> responseEntity = restTemplate.exchange(
+				    builder.toUriString(),
+		            HttpMethod.POST,
+		            new HttpEntity<>(clientDto),
+		            Void.class // Since the server doesn't return any response body, use Void.class
+		        );
+		
+		  Assertions.assertEquals(HttpStatus.CREATED, responseEntity.getStatusCode());
 
-		HttpEntity<ClientDto> entity = new HttpEntity<ClientDto>(cli);
-		ResponseEntity<Object> response = restTemplate.exchange(builder.toUriString(), HttpMethod.POST, entity,
-				Object.class);
-
-		Assertions.assertNotEquals(HttpStatus.CREATED, response.getStatusCode());
 	}
 
 	@Test
